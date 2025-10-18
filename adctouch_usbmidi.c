@@ -30,11 +30,11 @@ Based on:
 
 #include "ch32v003_touch.h"
 
-#define ADC_PIN_COUNT 2
+#define ADC_PIN_COUNT 4
 #define ITERATIONS 3
 #define TOUCH_THRESHOLD 1000
 
-const uint8_t MIDI_NOTES[ADC_PIN_COUNT] = {60, 62}; // C4, D4
+const uint8_t MIDI_NOTES[ADC_PIN_COUNT] = {60, 62, 64, 65}; // C4, D4, E4, F4
 
 typedef struct {
   volatile uint8_t len;
@@ -65,7 +65,8 @@ int main() {
   printf("USB configured\n");
 
   // Enable GPIOD, C and ADC
-  RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_ADC1;
+  RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC |
+                    RCC_APB2Periph_GPIOD | RCC_APB2Periph_ADC1;
 
   InitTouchADC();
 
@@ -75,6 +76,8 @@ int main() {
   // get reference values
   ref[0] = ReadTouchPin(GPIOA, 2, 0, ITERATIONS);
   ref[1] = ReadTouchPin(GPIOA, 1, 1, ITERATIONS);
+  ref[2] = ReadTouchPin(GPIOC, 4, 2, ITERATIONS);
+  ref[3] = ReadTouchPin(GPIOD, 2, 3, ITERATIONS);
 
   while (1) {
     uint32_t sum[ADC_PIN_COUNT] = {0};
@@ -85,6 +88,8 @@ int main() {
     // read touch pins
     sum[0] += ReadTouchPin(GPIOA, 2, 0, ITERATIONS);
     sum[1] += ReadTouchPin(GPIOA, 1, 1, ITERATIONS);
+    sum[2] += ReadTouchPin(GPIOC, 4, 2, ITERATIONS);
+    sum[3] += ReadTouchPin(GPIOD, 2, 3, ITERATIONS);
 
     for (uint8_t i = 0; i < ADC_PIN_COUNT; i++) {
       sum[i] = sum[i] - ref[i];
